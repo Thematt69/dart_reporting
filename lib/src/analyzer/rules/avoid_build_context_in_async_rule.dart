@@ -33,8 +33,10 @@ class AvoidBuildContextInAsyncRule extends AnalysisRule {
           !line.contains('parameter') &&
           !line.contains('(') &&
           !line.contains('build')) {
-        // Check if it's actually a field (indented at class level)
-        if (lines[i].startsWith('  ') && !lines[i].startsWith('    ')) {
+        // Check if it's at class-member indentation level (not inside a method)
+        // by verifying this line doesn't appear deeply nested
+        final leadingSpaces = lines[i].length - lines[i].trimLeft().length;
+        if (leadingSpaces > 0 && leadingSpaces <= 4) {
           findings.add(Finding(
             ruleId: 'analyzer/avoid-build-context-in-async',
             message:

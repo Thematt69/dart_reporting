@@ -85,6 +85,13 @@ class AvoidHardcodedColorsRule extends AnalysisRule {
 
       // Check Colors.xxx usage inside build-like contexts
       for (final match in _colorsPattern.allMatches(line)) {
+        final colorName = match.group(0)!;
+        // Skip common universal colors
+        if (colorName == 'Colors.transparent' ||
+            colorName == 'Colors.white' ||
+            colorName == 'Colors.black') {
+          continue;
+        }
         findings.add(Finding(
           ruleId: 'analyzer/avoid-hardcoded-colors',
           message:

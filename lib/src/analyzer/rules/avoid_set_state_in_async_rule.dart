@@ -33,7 +33,7 @@ class AvoidSetStateInAsyncRule extends AnalysisRule {
       var foundAwait = false;
       var foundMountedCheck = false;
 
-      for (var j = i - 1; j >= (i - 15).clamp(0, lines.length); j--) {
+      for (var j = i - 1; j >= (i - 15).clamp(0, i); j--) {
         if (_awaitPattern.hasMatch(lines[j])) {
           foundAwait = true;
         }

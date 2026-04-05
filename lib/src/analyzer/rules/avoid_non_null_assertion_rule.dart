@@ -62,9 +62,9 @@ class AvoidNonNullAssertionRule extends AnalysisRule {
     var singleQuoteCount = 0;
     var doubleQuoteCount = 0;
     for (var i = 0; i < pos; i++) {
-      if (line[i] == "'" && (i == 0 || line[i - 1] != r'\')) {
+      if (line[i] == "'" && (i == 0 || line[i - 1] != '\\')) {
         singleQuoteCount++;
-      } else if (line[i] == '"' && (i == 0 || line[i - 1] != r'\')) {
+      } else if (line[i] == '"' && (i == 0 || line[i - 1] != '\\')) {
         doubleQuoteCount++;
       }
     }

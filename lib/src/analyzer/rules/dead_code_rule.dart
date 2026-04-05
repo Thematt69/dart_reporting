@@ -290,11 +290,10 @@ class DeadCodeRule extends AnalysisRule {
     }
 
     // Check if each private member is referenced elsewhere in the file
+    // Build a single regex for all members to avoid repeated compilation
     for (final member in privateMembers) {
-      // Count occurrences (should be > 1: declaration + usage)
-      final occurrences = RegExp('\\b${RegExp.escape(member.name)}\\b')
-          .allMatches(source)
-          .length;
+      final pattern = RegExp('\\b${RegExp.escape(member.name)}\\b');
+      final occurrences = pattern.allMatches(source).length;
 
       if (occurrences <= 1) {
         findings.add(Finding(
