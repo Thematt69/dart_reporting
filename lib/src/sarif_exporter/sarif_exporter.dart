@@ -127,6 +127,38 @@ class SarifExporter {
         'Prefer cached_network_image over Image.network()',
       'analyzer/prefer-const-widget' =>
         'Prefer const constructor for widgets',
+      // Code quality rules
+      'analyzer/avoid-print' =>
+        'Avoid print() in production code',
+      'analyzer/avoid-unnecessary-container' =>
+        'Avoid Container without decoration properties',
+      'analyzer/avoid-non-null-assertion' =>
+        'Avoid non-null assertion operator (!)',
+      'analyzer/avoid-empty-catch' =>
+        'Avoid empty catch blocks',
+      'analyzer/prefer-is-empty' =>
+        'Prefer .isEmpty/.isNotEmpty over .length comparison',
+      'analyzer/avoid-hardcoded-colors' =>
+        'Avoid hardcoded color values in widget code',
+      'analyzer/prefer-named-parameters' =>
+        'Prefer named parameters for functions with many arguments',
+      'analyzer/avoid-build-context-in-async' =>
+        'Avoid passing BuildContext to async functions',
+      'analyzer/avoid-set-state-in-async' =>
+        'Avoid setState() after await without mounted check',
+      'analyzer/use-key-in-widget-constructor' =>
+        'Widget constructor missing Key parameter',
+      // Dead code rules
+      'analyzer/unused-import' =>
+        'Unused import detected',
+      'analyzer/commented-out-code' =>
+        'Block of commented-out code detected',
+      'analyzer/technical-debt-comment' =>
+        'Technical debt comment (TODO/FIXME/HACK)',
+      'analyzer/deprecated-member' =>
+        'Deprecated member should be removed or replaced',
+      'analyzer/unused-private-member' =>
+        'Unused private member detected',
       // Firebase rules
       'analyzer/firestore-snapshots-not-tracked' =>
         'Firestore snapshots() listener not stored in StreamSubscription',
@@ -205,6 +237,21 @@ class SarifExporter {
     return switch (ruleId) {
       'security/osv-vulnerability' => 'https://osv.dev/',
       'security/discontinued-package' => 'https://pub.dev/',
+      'analyzer/avoid-print' =>
+        'https://dart.dev/tools/linter-rules/avoid_print',
+      'analyzer/avoid-unnecessary-container' =>
+        'https://dart.dev/tools/linter-rules/avoid_unnecessary_containers',
+      'analyzer/avoid-non-null-assertion' =>
+        'https://dart.dev/tools/linter-rules/avoid_null_checks_in_equality_operators',
+      'analyzer/avoid-empty-catch' =>
+        'https://dart.dev/tools/linter-rules/empty_catches',
+      'analyzer/prefer-is-empty' =>
+        'https://dart.dev/tools/linter-rules/prefer_is_empty',
+      'analyzer/use-key-in-widget-constructor' =>
+        'https://dart.dev/tools/linter-rules/use_key_in_widget_constructors',
+      'analyzer/avoid-build-context-in-async' ||
+      'analyzer/avoid-set-state-in-async' =>
+        'https://dart.dev/tools/linter-rules/use_build_context_synchronously',
       'analyzer/riverpod-prefer-notifier' =>
         'https://riverpod.dev/docs/migration/from_state_notifier',
       'analyzer/riverpod-avoid-change-notifier' =>

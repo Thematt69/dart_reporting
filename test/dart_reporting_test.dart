@@ -721,4 +721,436 @@ void doWork() {
       expect(findings, isEmpty);
     });
   });
+
+  // ==================== Core Dart/Flutter Rules ====================
+
+  group('AvoidPrintRule', () {
+    const rule = AvoidPrintRule();
+
+    test('detects print() in production code', () {
+      const source = '''
+void doSomething() {
+  print('debug info');
+}
+''';
+      final findings = rule.analyze('lib/main.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-print');
+    });
+
+    test('ignores print() in test files', () {
+      const source = '''
+void main() {
+  print('test output');
+}
+''';
+      final findings = rule.analyze('test/widget_test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('ignores debugPrint()', () {
+      const source = '''
+void doSomething() {
+  debugPrint('debug info');
+}
+''';
+      final findings = rule.analyze('lib/main.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('ignores print in comments', () {
+      const source = '''
+// print('should not trigger');
+/// print('doc comment');
+''';
+      final findings = rule.analyze('lib/main.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidUnnecessaryContainerRule', () {
+    const rule = AvoidUnnecessaryContainerRule();
+
+    test('detects empty Container()', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-unnecessary-container');
+    });
+
+    test('passes for Container with decoration', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(
+    decoration: BoxDecoration(color: Colors.red),
+    child: Text('hello'),
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('passes for Container with color', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(
+    color: Colors.blue,
+    child: Text('hello'),
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidNonNullAssertionRule', () {
+    const rule = AvoidNonNullAssertionRule();
+
+    test('detects non-null assertion operator', () {
+      const source = '''
+void foo(String? value) {
+  final x = value!;
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-non-null-assertion');
+    });
+
+    test('ignores != operator', () {
+      const source = '''
+void foo(String? value) {
+  if (value != null) {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidEmptyCatchRule', () {
+    const rule = AvoidEmptyCatchRule();
+
+    test('detects empty catch block', () {
+      const source = '''
+void foo() {
+  try {
+    doSomething();
+  } catch (e) {
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-empty-catch');
+    });
+
+    test('passes for catch with body', () {
+      const source = '''
+void foo() {
+  try {
+    doSomething();
+  } catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferIsEmptyRule', () {
+    const rule = PreferIsEmptyRule();
+
+    test('detects .length == 0', () {
+      const source = '''
+void foo(List<int> list) {
+  if (list.length == 0) {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-is-empty');
+    });
+
+    test('detects .length > 0', () {
+      const source = '''
+void foo(List<int> list) {
+  if (list.length > 0) {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-is-empty');
+    });
+  });
+
+  group('AvoidHardcodedColorsRule', () {
+    const rule = AvoidHardcodedColorsRule();
+
+    test('detects Color(0x...) in widget code', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(color: Color(0xFF00FF00));
+}
+''';
+      final findings = rule.analyze('lib/my_widget.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/avoid-hardcoded-colors'),
+        isNotEmpty,
+      );
+    });
+
+    test('ignores theme/color files', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(color: Color(0xFF00FF00));
+}
+''';
+      final findings = rule.analyze('lib/theme.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferNamedParametersRule', () {
+    const rule = PreferNamedParametersRule();
+
+    test('detects function with too many positional parameters', () {
+      const source = '''
+void doSomething(String a, int b, double c, bool d) {
+  // body
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-named-parameters');
+    });
+
+    test('passes for function with 3 or fewer positional parameters', () {
+      const source = '''
+void doSomething(String a, int b, double c) {
+  // body
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('passes for function with named parameters', () {
+      const source = '''
+void doSomething({required String a, required int b, required double c, required bool d}) {
+  // body
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidBuildContextInAsyncRule', () {
+    const rule = AvoidBuildContextInAsyncRule();
+
+    test('detects async function with BuildContext parameter', () {
+      const source = '''
+Future<void> doSomething(BuildContext context) async {
+  await Future.delayed(Duration(seconds: 1));
+  Navigator.of(context).pop();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-build-context-in-async');
+    });
+
+    test('passes for sync function with BuildContext', () {
+      const source = '''
+void doSomething(BuildContext context) {
+  Navigator.of(context).pop();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidSetStateInAsyncRule', () {
+    const rule = AvoidSetStateInAsyncRule();
+
+    test('detects setState after await without mounted check', () {
+      const source = '''
+class _MyState extends State<MyWidget> {
+  void _loadData() async {
+    final data = await fetchData();
+    setState(() {
+      _data = data;
+    });
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-set-state-in-async');
+    });
+
+    test('passes when mounted is checked', () {
+      const source = '''
+class _MyState extends State<MyWidget> {
+  void _loadData() async {
+    final data = await fetchData();
+    if (!mounted) return;
+    setState(() {
+      _data = data;
+    });
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('ignores files without State class', () {
+      const source = '''
+void doSomething() async {
+  await Future.delayed(Duration(seconds: 1));
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('UseKeyInWidgetConstructorRule', () {
+    const rule = UseKeyInWidgetConstructorRule();
+
+    test('detects widget without key parameter', () {
+      const source = '''
+class MyWidget extends StatelessWidget {
+  final String title;
+  const MyWidget(this.title);
+
+  @override
+  Widget build(BuildContext context) => Text(title);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/use-key-in-widget-constructor');
+    });
+
+    test('passes when key is present', () {
+      const source = '''
+class MyWidget extends StatelessWidget {
+  final String title;
+  const MyWidget({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) => Text(title);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  // ==================== Dead Code Detection ====================
+
+  group('DeadCodeRule', () {
+    const rule = DeadCodeRule();
+
+    test('detects commented-out code blocks', () {
+      const source = '''
+void main() {
+  // final x = 1;
+  // final y = 2;
+  // print(x + y);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/commented-out-code'),
+        hasLength(1),
+      );
+    });
+
+    test('ignores regular comments', () {
+      const source = '''
+// This is a regular comment explaining the code
+// It describes what the function does
+// And provides context for the reader
+void main() {}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/commented-out-code'),
+        isEmpty,
+      );
+    });
+
+    test('detects TODO/FIXME comments', () {
+      const source = '''
+void main() {
+  // TODO: implement this feature
+  // FIXME: broken edge case
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/technical-debt-comment'),
+        hasLength(2),
+      );
+    });
+
+    test('detects deprecated members', () {
+      const source = '''
+@deprecated
+void oldMethod() {}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/deprecated-member'),
+        hasLength(1),
+      );
+    });
+
+    test('detects unused private members', () {
+      const source = '''
+class MyClass {
+  final String _unusedField = 'hello';
+
+  void doSomething() {
+    print('doing something');
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/unused-private-member'),
+        hasLength(1),
+      );
+    });
+
+    test('passes for used private members', () {
+      const source = '''
+class MyClass {
+  final String _usedField = 'hello';
+
+  void doSomething() {
+    print(_usedField);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/unused-private-member'),
+        isEmpty,
+      );
+    });
+  });
 }

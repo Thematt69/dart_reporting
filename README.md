@@ -12,6 +12,25 @@ A static analysis and code audit CLI tool for Dart/Flutter projects. Acts as a c
 - **Data Consumption:** Detects `Image.network()` and recommends `cached_network_image`.
 - **Const Widgets:** Suggests `const` constructors for widgets like `SizedBox()`, `Spacer()`, `Divider()`.
 
+#### Code Quality Rules
+- **avoid-print:** Detects `print()` in production code (recommends `debugPrint()`, `log()`, or a logging package).
+- **avoid-unnecessary-container:** Detects `Container` used without decoration, color, or transform properties.
+- **avoid-non-null-assertion:** Detects `!` non-null assertion operator (recommends null-aware alternatives).
+- **avoid-empty-catch:** Detects empty `catch` blocks that silently swallow errors.
+- **prefer-is-empty:** Detects `.length == 0` / `.length > 0` (recommends `.isEmpty` / `.isNotEmpty`).
+- **avoid-hardcoded-colors:** Detects hardcoded `Color(0x...)` / `Colors.*` in widget code (recommends Theme or constants).
+- **prefer-named-parameters:** Detects functions with more than 3 positional parameters (recommends named parameters).
+- **avoid-build-context-in-async:** Detects `BuildContext` passed to `async` functions or stored as fields.
+- **avoid-set-state-in-async:** Detects `setState()` after `await` without checking `mounted`.
+- **use-key-in-widget-constructor:** Detects widget constructors missing a `Key` parameter.
+
+#### Dead Code / Unused Code Detection
+- **unused-import:** Detects imports that appear unused in the file.
+- **commented-out-code:** Detects blocks of commented-out code (≥3 consecutive lines).
+- **technical-debt-comment:** Detects `TODO` / `FIXME` / `HACK` comments as technical debt markers.
+- **deprecated-member:** Detects members annotated with `@deprecated`.
+- **unused-private-member:** Detects private fields and methods never referenced in the file.
+
 #### Dependency-Specific Rules
 - **Firebase** (`cloud_firestore`, `firebase_auth`, `firebase_messaging`, `firebase_storage`, `firebase_ai`):
   Detects untracked Firestore snapshot listeners, Firebase Auth/Messaging state listeners not stored in `StreamSubscription`, Storage tasks without error handling, and AI calls without try/catch.
@@ -100,16 +119,27 @@ lib/
     ├── analyzer/                # AST analysis rules
     │   ├── analyzer_module.dart
     │   └── rules/
+    │       ├── avoid_build_context_in_async_rule.dart
+    │       ├── avoid_empty_catch_rule.dart
+    │       ├── avoid_hardcoded_colors_rule.dart
+    │       ├── avoid_non_null_assertion_rule.dart
+    │       ├── avoid_print_rule.dart
+    │       ├── avoid_set_state_in_async_rule.dart
+    │       ├── avoid_unnecessary_container_rule.dart
     │       ├── const_widget_rule.dart
+    │       ├── dead_code_rule.dart
     │       ├── equatable_rule.dart
     │       ├── firebase_rule.dart
     │       ├── go_router_rule.dart
     │       ├── image_network_rule.dart
     │       ├── image_picker_rule.dart
     │       ├── media_query_rule.dart
+    │       ├── prefer_is_empty_rule.dart
+    │       ├── prefer_named_parameters_rule.dart
     │       ├── riverpod_rule.dart
     │       ├── sentry_rule.dart
     │       ├── stream_subscription_rule.dart
+    │       ├── use_key_in_widget_constructor_rule.dart
     │       └── widget_lifecycle_rule.dart
     ├── ast_duplication/         # Code duplication detection
     │   ├── duplication_module.dart

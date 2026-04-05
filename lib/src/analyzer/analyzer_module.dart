@@ -1,16 +1,27 @@
 import 'dart:io';
 
 import '../common/common.dart';
+import 'rules/avoid_build_context_in_async_rule.dart';
+import 'rules/avoid_empty_catch_rule.dart';
+import 'rules/avoid_hardcoded_colors_rule.dart';
+import 'rules/avoid_non_null_assertion_rule.dart';
+import 'rules/avoid_print_rule.dart';
+import 'rules/avoid_set_state_in_async_rule.dart';
+import 'rules/avoid_unnecessary_container_rule.dart';
 import 'rules/const_widget_rule.dart';
+import 'rules/dead_code_rule.dart';
 import 'rules/equatable_rule.dart';
 import 'rules/firebase_rule.dart';
 import 'rules/go_router_rule.dart';
 import 'rules/image_network_rule.dart';
 import 'rules/image_picker_rule.dart';
 import 'rules/media_query_rule.dart';
+import 'rules/prefer_is_empty_rule.dart';
+import 'rules/prefer_named_parameters_rule.dart';
 import 'rules/riverpod_rule.dart';
 import 'rules/sentry_rule.dart';
 import 'rules/stream_subscription_rule.dart';
+import 'rules/use_key_in_widget_constructor_rule.dart';
 import 'rules/widget_lifecycle_rule.dart';
 
 /// Module that performs AST-based static analysis on Dart source files.
@@ -19,6 +30,9 @@ import 'rules/widget_lifecycle_rule.dart';
 /// - Memory leaks (uncancelled StreamSubscription/Timer in StatefulWidget)
 /// - Performance (const widgets, MediaQuery.sizeOf)
 /// - Data consumption (Image.network without caching)
+/// - Code quality (print, empty catch, non-null assertion, etc.)
+/// - Dead code detection (unused imports, commented code, deprecated APIs)
+/// - Flutter best practices (BuildContext in async, setState after await)
 /// - Firebase best practices (Firestore, Auth, Messaging, Storage, AI)
 /// - Riverpod patterns (StateNotifier migration, ref.watch usage)
 /// - go_router navigation (Navigator vs go_router usage)
@@ -61,6 +75,19 @@ class AnalyzerModule {
         const MediaQueryRule(),
         const ImageNetworkRule(),
         const ConstWidgetRule(),
+        // Code quality rules
+        const AvoidPrintRule(),
+        const AvoidUnnecessaryContainerRule(),
+        const AvoidNonNullAssertionRule(),
+        const AvoidEmptyCatchRule(),
+        const PreferIsEmptyRule(),
+        const AvoidHardcodedColorsRule(),
+        const PreferNamedParametersRule(),
+        const AvoidBuildContextInAsyncRule(),
+        const AvoidSetStateInAsyncRule(),
+        const UseKeyInWidgetConstructorRule(),
+        // Dead code detection
+        const DeadCodeRule(),
         // Dependency-specific rules
         const FirebaseRule(),
         const RiverpodRule(),
