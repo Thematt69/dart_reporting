@@ -43,8 +43,7 @@ class StreamSubscriptionRule extends AnalysisRule {
       final disposeMatch = _disposePattern.firstMatch(classBody);
 
       for (final field in fields) {
-        final cancelMethod =
-            field.type == 'Timer' ? 'cancel' : 'cancel';
+        const cancelMethod = 'cancel';
 
         if (disposeMatch == null) {
           final lineNum = _findFieldLine(lines, field.name, classStart);

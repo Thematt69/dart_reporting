@@ -70,7 +70,8 @@ class SarifExporter {
             'driver': {
               'name': toolName,
               'version': toolVersion,
-              'informationUri': ?informationUri,
+              // ignore: use_null_aware_elements
+              if (informationUri != null) 'informationUri': informationUri,
               'rules': rules,
             },
           },
