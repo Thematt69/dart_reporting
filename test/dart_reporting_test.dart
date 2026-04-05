@@ -340,4 +340,385 @@ class _MyWidgetState extends State<MyWidget> {
       expect(findings, isEmpty);
     });
   });
+
+  group('FirebaseRule', () {
+    const rule = FirebaseRule();
+
+    test('detects untracked Firestore snapshots listener', () {
+      const source = '''
+Widget build(BuildContext context) {
+  FirebaseFirestore.instance.collection('users').snapshots().listen((s) {
+    print(s);
+  });
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(
+          findings.first.ruleId, 'analyzer/firestore-snapshots-not-tracked');
+    });
+
+    test('passes when snapshots assigned to variable', () {
+      const source = '''
+void init() {
+  _subscription = FirebaseFirestore.instance.collection('users').snapshots().listen((s) {});
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('detects untracked Firebase Auth listener', () {
+      const source = '''
+void init() {
+  FirebaseAuth.instance.authStateChanges().listen((user) {});
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId,
+          'analyzer/firebase-auth-listener-not-tracked');
+    });
+
+    test('detects untracked Firebase Messaging listener', () {
+      const source = '''
+void init() {
+  FirebaseMessaging.onMessage.listen((msg) {});
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId,
+          'analyzer/firebase-messaging-listener-not-tracked');
+    });
+
+    test('detects Firebase Storage task without error handling', () {
+      const source = '''
+void upload() {
+  ref.putFile(file);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId,
+          'analyzer/firebase-storage-no-error-handling');
+    });
+
+    test('passes when Storage task has try/catch', () {
+      const source = '''
+void upload() {
+  try {
+    ref.putFile(file);
+  } catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('RiverpodRule', () {
+    const rule = RiverpodRule();
+
+    test('detects deprecated StateNotifier', () {
+      const source = '''
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class CounterNotifier extends StateNotifier<int> {
+  CounterNotifier() : super(0);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/riverpod-prefer-notifier');
+    });
+
+    test('detects ChangeNotifierProvider', () {
+      const source = '''
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final provider = ChangeNotifierProvider((ref) => MyNotifier());
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(
+          findings.first.ruleId, 'analyzer/riverpod-avoid-change-notifier');
+    });
+
+    test('ignores non-riverpod files', () {
+      const source = '''
+class MyClass {
+  void doSomething() {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('GoRouterRule', () {
+    const rule = GoRouterRule();
+
+    test('detects Navigator.push with go_router', () {
+      const source = '''
+import 'package:go_router/go_router.dart';
+
+void navigate(BuildContext context) {
+  Navigator.push(context, route);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/go-router-avoid-navigator');
+    });
+
+    test('detects Navigator.of with go_router', () {
+      const source = '''
+import 'package:go_router/go_router.dart';
+
+void navigate(BuildContext context) {
+  Navigator.of(context).push(route);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/go-router-avoid-navigator');
+    });
+
+    test('detects MaterialPageRoute with go_router', () {
+      const source = '''
+import 'package:go_router/go_router.dart';
+
+final route = MaterialPageRoute(builder: (_) => Page());
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId,
+          'analyzer/go-router-avoid-material-page-route');
+    });
+
+    test('ignores files without go_router', () {
+      const source = '''
+void navigate(BuildContext context) {
+  Navigator.push(context, route);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('EquatableRule', () {
+    const rule = EquatableRule();
+
+    test('detects Equatable with empty props', () {
+      const source = '''
+class User extends Equatable {
+  final String name;
+
+  const User(this.name);
+
+  @override
+  List<Object?> get props => [];
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/equatable-empty-props'),
+        hasLength(1),
+      );
+    });
+
+    test('detects Equatable without props override', () {
+      const source = '''
+class User extends Equatable {
+  final String name;
+  const User(this.name);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings
+            .where((f) => f.ruleId == 'analyzer/equatable-missing-props'),
+        hasLength(1),
+      );
+    });
+
+    test('passes for correct Equatable usage', () {
+      const source = '''
+class User extends Equatable {
+  final String name;
+  const User(this.name);
+
+  @override
+  List<Object?> get props => [name];
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/equatable-empty-props'),
+        isEmpty,
+      );
+      expect(
+        findings
+            .where((f) => f.ruleId == 'analyzer/equatable-missing-props'),
+        isEmpty,
+      );
+    });
+
+    test('ignores files without Equatable', () {
+      const source = '''
+class User {
+  final String name;
+  const User(this.name);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('WidgetLifecycleRule', () {
+    const rule = WidgetLifecycleRule();
+
+    test('detects WakelockPlus.enable without disable', () {
+      const source = '''
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+class _MyState extends State<MyWidget> {
+  void initState() {
+    WakelockPlus.enable();
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/wakelock-not-disabled'),
+        hasLength(1),
+      );
+    });
+
+    test('passes when WakelockPlus has matching disable', () {
+      const source = '''
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+class _MyState extends State<MyWidget> {
+  void initState() {
+    WakelockPlus.enable();
+  }
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where((f) => f.ruleId == 'analyzer/wakelock-not-disabled'),
+        isEmpty,
+      );
+    });
+  });
+
+  group('ImagePickerRule', () {
+    const rule = ImagePickerRule();
+
+    test('detects deprecated ImagePicker.pickImage', () {
+      const source = '''
+import 'package:image_picker/image_picker.dart';
+
+void pick() {
+  ImagePicker.pickImage(source: ImageSource.camera);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where(
+            (f) => f.ruleId == 'analyzer/image-picker-deprecated-method'),
+        hasLength(1),
+      );
+    });
+
+    test('ignores files without image_picker', () {
+      const source = '''
+void doSomething() {
+  print("hello");
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('SentryRule', () {
+    const rule = SentryRule();
+
+    test('detects print for error logging when Sentry is available', () {
+      const source = '''
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+void handleError(Object error) {
+  print("Error: \$error");
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where(
+            (f) => f.ruleId == 'analyzer/sentry-use-capture-exception'),
+        hasLength(1),
+      );
+    });
+
+    test('detects catch without Sentry capture', () {
+      const source = '''
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+void doWork() {
+  } catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where(
+            (f) => f.ruleId == 'analyzer/sentry-missing-capture-in-catch'),
+        hasLength(1),
+      );
+    });
+
+    test('passes when catch has Sentry.captureException', () {
+      const source = '''
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+void doWork() {
+  } catch (e, stackTrace) {
+    Sentry.captureException(e, stackTrace: stackTrace);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(
+        findings.where(
+            (f) => f.ruleId == 'analyzer/sentry-missing-capture-in-catch'),
+        isEmpty,
+      );
+    });
+
+    test('ignores files without Sentry', () {
+      const source = '''
+void doWork() {
+  try {
+    something();
+  } catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
 }

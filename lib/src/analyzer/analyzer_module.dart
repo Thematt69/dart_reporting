@@ -2,9 +2,16 @@ import 'dart:io';
 
 import '../common/common.dart';
 import 'rules/const_widget_rule.dart';
+import 'rules/equatable_rule.dart';
+import 'rules/firebase_rule.dart';
+import 'rules/go_router_rule.dart';
 import 'rules/image_network_rule.dart';
+import 'rules/image_picker_rule.dart';
 import 'rules/media_query_rule.dart';
+import 'rules/riverpod_rule.dart';
+import 'rules/sentry_rule.dart';
 import 'rules/stream_subscription_rule.dart';
+import 'rules/widget_lifecycle_rule.dart';
 
 /// Module that performs AST-based static analysis on Dart source files.
 ///
@@ -12,6 +19,13 @@ import 'rules/stream_subscription_rule.dart';
 /// - Memory leaks (uncancelled StreamSubscription/Timer in StatefulWidget)
 /// - Performance (const widgets, MediaQuery.sizeOf)
 /// - Data consumption (Image.network without caching)
+/// - Firebase best practices (Firestore, Auth, Messaging, Storage, AI)
+/// - Riverpod patterns (StateNotifier migration, ref.watch usage)
+/// - go_router navigation (Navigator vs go_router usage)
+/// - Equatable correctness (props, immutability)
+/// - Widget lifecycle (flutter_map, wakelock_plus, webview_flutter, lottie)
+/// - image_picker usage (deprecated methods, null checks)
+/// - Sentry error tracking (capture exceptions, catch blocks)
 class AnalyzerModule {
   final String projectPath;
   final List<String> excludePatterns;
@@ -42,10 +56,19 @@ class AnalyzerModule {
 
       final findings = <Finding>[];
       final rules = [
+        // Core rules
         const StreamSubscriptionRule(),
         const MediaQueryRule(),
         const ImageNetworkRule(),
         const ConstWidgetRule(),
+        // Dependency-specific rules
+        const FirebaseRule(),
+        const RiverpodRule(),
+        const GoRouterRule(),
+        const EquatableRule(),
+        const WidgetLifecycleRule(),
+        const ImagePickerRule(),
+        const SentryRule(),
       ];
 
       for (final file in dartFiles) {

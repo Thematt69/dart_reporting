@@ -5,10 +5,28 @@ A static analysis and code audit CLI tool for Dart/Flutter projects. Acts as a c
 ## Features
 
 ### 1. AST Analysis Engine (`lib/src/analyzer/`)
+
+#### Core Rules
 - **Memory Leaks:** Detects `StreamSubscription` and `Timer` fields not cancelled in `dispose()` of `StatefulWidget`.
 - **Render Performance:** Recommends `MediaQuery.sizeOf(context)` over `MediaQuery.of(context)`.
 - **Data Consumption:** Detects `Image.network()` and recommends `cached_network_image`.
 - **Const Widgets:** Suggests `const` constructors for widgets like `SizedBox()`, `Spacer()`, `Divider()`.
+
+#### Dependency-Specific Rules
+- **Firebase** (`cloud_firestore`, `firebase_auth`, `firebase_messaging`, `firebase_storage`, `firebase_ai`):
+  Detects untracked Firestore snapshot listeners, Firebase Auth/Messaging state listeners not stored in `StreamSubscription`, Storage tasks without error handling, and AI calls without try/catch.
+- **Riverpod** (`flutter_riverpod`, `riverpod_annotation`):
+  Detects deprecated `StateNotifier` usage, `ChangeNotifierProvider`, `ref.watch()` outside build methods, and suggests `@riverpod` annotation over manual provider declarations.
+- **go_router**:
+  Detects `Navigator.push`/`Navigator.of` usage when `go_router` is available (should use `context.go`/`context.push`), and `MaterialPageRoute` usage.
+- **Equatable** (`equatable`):
+  Detects classes extending `Equatable` with empty or missing `props`, and mutable fields in `Equatable` classes.
+- **Widget Lifecycle** (`flutter_map`, `wakelock_plus`, `webview_flutter`, `lottie`):
+  Detects `MapController` not disposed, `WakelockPlus.enable()` without `disable()` in `dispose()`, `WebViewController` lifecycle issues, and `AnimationController` for Lottie not disposed.
+- **image_picker**:
+  Detects deprecated `ImagePicker.pickImage()` static method and missing null checks on pick results.
+- **sentry_flutter**:
+  Detects `print()` used for error logging when Sentry is available, and `catch` blocks that don't report to Sentry.
 
 ### 2. Code Duplication Detection (`lib/src/ast_duplication/`)
 - Structural AST-based analysis (alpha-equivalence).
@@ -83,9 +101,16 @@ lib/
     │   ├── analyzer_module.dart
     │   └── rules/
     │       ├── const_widget_rule.dart
+    │       ├── equatable_rule.dart
+    │       ├── firebase_rule.dart
+    │       ├── go_router_rule.dart
     │       ├── image_network_rule.dart
+    │       ├── image_picker_rule.dart
     │       ├── media_query_rule.dart
-    │       └── stream_subscription_rule.dart
+    │       ├── riverpod_rule.dart
+    │       ├── sentry_rule.dart
+    │       ├── stream_subscription_rule.dart
+    │       └── widget_lifecycle_rule.dart
     ├── ast_duplication/         # Code duplication detection
     │   ├── duplication_module.dart
     │   ├── duplication_models.dart
