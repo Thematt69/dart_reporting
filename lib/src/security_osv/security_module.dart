@@ -41,16 +41,16 @@ class SecurityModule {
         // Query OSV for vulnerabilities concurrently (bounded)
         const maxConcurrent = 5;
         for (var i = 0; i < deps.length; i += maxConcurrent) {
-          final batch = deps.skip(i).take(maxConcurrent);
+          final batchDeps = deps.skip(i).take(maxConcurrent).toList();
           final results = await Future.wait(
-            batch.map((dep) => osvClient.queryVulnerabilities(
+            batchDeps.map((dep) => osvClient.queryVulnerabilities(
               dep.name,
               dep.version,
             )),
           );
 
           for (var j = 0; j < results.length; j++) {
-            final dep = deps[i + j];
+            final dep = batchDeps[j];
             for (final vuln in results[j]) {
               findings.add(Finding(
                 ruleId: 'security/osv-vulnerability',
@@ -69,16 +69,17 @@ class SecurityModule {
               deps.where((d) => d.source == 'hosted').toList();
 
           for (var i = 0; i < hostedDeps.length; i += maxConcurrent) {
-            final batch = hostedDeps.skip(i).take(maxConcurrent);
+            final batchDeps =
+                hostedDeps.skip(i).take(maxConcurrent).toList();
             final results = await Future.wait(
-              batch.map((dep) => pubDevClient.checkPackageStatus(
+              batchDeps.map((dep) => pubDevClient.checkPackageStatus(
                 dep.name,
                 dep.version,
               )),
             );
 
             for (var j = 0; j < results.length; j++) {
-              final dep = hostedDeps[i + j];
+              final dep = batchDeps[j];
               if (results[j].isDiscontinued) {
                 findings.add(Finding(
                   ruleId: 'security/discontinued-package',
