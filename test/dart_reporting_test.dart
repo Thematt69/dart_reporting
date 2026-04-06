@@ -1153,4 +1153,473 @@ class MyClass {
       );
     });
   });
+
+  // ==================== Additional Dart/Flutter Best Practices ====================
+
+  group('NoLogicInCreateStateRule', () {
+    const rule = NoLogicInCreateStateRule();
+
+    test('detects logic in createState()', () {
+      const source = '''
+class MyWidget extends StatefulWidget {
+  @override
+  State<MyWidget> createState() {
+    print('initializing');
+    return _MyWidgetState();
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/no-logic-in-create-state');
+    });
+
+    test('passes for simple createState()', () {
+      const source = '''
+class MyWidget extends StatefulWidget {
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('passes for single return statement', () {
+      const source = '''
+class MyWidget extends StatefulWidget {
+  @override
+  State<MyWidget> createState() {
+    return _MyWidgetState();
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferConstConstructorsRule', () {
+    const rule = PreferConstConstructorsRule();
+
+    test('detects non-const SizedBox with no args', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return SizedBox();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-const-constructors');
+    });
+
+    test('ignores const SizedBox', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return const SizedBox();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferConstDeclarationsRule', () {
+    const rule = PreferConstDeclarationsRule();
+
+    test('detects final with string literal', () {
+      const source = '''
+final String appName = 'MyApp';
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-const-declarations');
+    });
+
+    test('detects final with number literal', () {
+      const source = '''
+final int maxRetries = 3;
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+    });
+
+    test('ignores already const declarations', () {
+      const source = '''
+const String appName = 'MyApp';
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('SortChildPropertiesLastRule', () {
+    const rule = SortChildPropertiesLastRule();
+
+    test('detects child not last', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Padding(
+    child: Text('hello'),
+    padding: EdgeInsets.all(8),
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/sort-child-properties-last');
+    });
+
+    test('passes when child is last', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Padding(
+    padding: EdgeInsets.all(8),
+    child: Text('hello'),
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferFinalLocalsRule', () {
+    const rule = PreferFinalLocalsRule();
+
+    test('detects var that is never reassigned', () {
+      const source = '''
+void doSomething() {
+    var name = 'hello';
+    print(name);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-final-locals');
+    });
+
+    test('passes when var is reassigned', () {
+      const source = '''
+void doSomething() {
+    var count = 0;
+    count = 1;
+    print(count);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('SizedBoxForWhitespaceRule', () {
+    const rule = SizedBoxForWhitespaceRule();
+
+    test('detects Container with only width/height', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(
+    width: 20,
+    height: 20,
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/sized-box-for-whitespace');
+    });
+
+    test('passes for Container with decoration', () {
+      const source = '''
+Widget build(BuildContext context) {
+  return Container(
+    width: 20,
+    height: 20,
+    decoration: BoxDecoration(color: Colors.red),
+  );
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidVoidAsyncRule', () {
+    const rule = AvoidVoidAsyncRule();
+
+    test('detects void async function', () {
+      const source = '''
+void fetchData() async {
+  await Future.delayed(Duration(seconds: 1));
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-void-async');
+    });
+
+    test('ignores Future<void> async', () {
+      const source = '''
+Future<void> fetchData() async {
+  await Future.delayed(Duration(seconds: 1));
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+
+    test('ignores lifecycle overrides', () {
+      const source = '''
+@override
+void initState() async {
+  super.initState();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('CloseSinksRule', () {
+    const rule = CloseSinksRule();
+
+    test('detects unclosed StreamController', () {
+      const source = '''
+class _MyState extends State<MyWidget> {
+  final StreamController<int> _controller = StreamController();
+
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/close-sinks');
+    });
+
+    test('passes when closed in dispose', () {
+      const source = '''
+class _MyState extends State<MyWidget> {
+  final StreamController<int> _controller = StreamController();
+
+  @override
+  void dispose() {
+    _controller.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('UnawaitedFuturesRule', () {
+    const rule = UnawaitedFuturesRule();
+
+    test('detects unawaited known async method', () {
+      const source = '''
+Future<void> doWork() async {
+  Future.delayed(Duration(seconds: 1));
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/unawaited-futures');
+    });
+
+    test('ignores non-async files', () {
+      const source = '''
+void doWork() {
+  print('hello');
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('OnlyThrowErrorsRule', () {
+    const rule = OnlyThrowErrorsRule();
+
+    test('detects throwing a string literal', () {
+      const source = '''
+void validate() {
+  throw 'Invalid input';
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/only-throw-errors');
+    });
+
+    test('passes for throw Exception', () {
+      const source = '''
+void validate() {
+  throw Exception('Invalid input');
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('AvoidCatchingErrorsRule', () {
+    const rule = AvoidCatchingErrorsRule();
+
+    test('detects catching Error', () {
+      const source = '''
+void foo() {
+  try {
+    doSomething();
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/avoid-catching-errors');
+    });
+
+    test('passes for catching Exception', () {
+      const source = '''
+void foo() {
+  try {
+    doSomething();
+  } on Exception catch (e) {
+    print(e);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('UseFullHexValuesRule', () {
+    const rule = UseFullHexValuesRule();
+
+    test('detects short hex color value', () {
+      const source = '''
+final color = Color(0xFFFF00);
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/use-full-hex-values');
+    });
+
+    test('passes for full hex color value', () {
+      const source = '''
+final color = Color(0xFFFFFF00);
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('HashAndEqualsRule', () {
+    const rule = HashAndEqualsRule();
+
+    test('detects == without hashCode', () {
+      const source = '''
+class Point {
+  final int x;
+  final int y;
+
+  bool operator ==(Object other) {
+    return other is Point && other.x == x && other.y == y;
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/hash-and-equals');
+    });
+
+    test('passes when both are overridden', () {
+      const source = '''
+class Point {
+  final int x;
+  final int y;
+
+  bool operator ==(Object other) {
+    return other is Point && other.x == x && other.y == y;
+  }
+
+  int get hashCode => x.hashCode ^ y.hashCode;
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('UnnecessaryThisRule', () {
+    const rule = UnnecessaryThisRule();
+
+    test('detects unnecessary this in method body', () {
+      const source = '''
+class MyClass {
+  String name = '';
+
+  void printName() {
+    print(this.name);
+  }
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/unnecessary-this');
+    });
+
+    test('ignores this in constructor parameters', () {
+      const source = '''
+class MyClass {
+  final String name;
+  MyClass({required this.name});
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
+
+  group('PreferContainsRule', () {
+    const rule = PreferContainsRule();
+
+    test('detects indexOf != -1', () {
+      const source = '''
+void check(List<int> items) {
+  if (items.indexOf(5) != -1) {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+      expect(findings.first.ruleId, 'analyzer/prefer-contains');
+    });
+
+    test('detects indexOf == -1', () {
+      const source = '''
+void check(List<int> items) {
+  if (items.indexOf(5) == -1) {}
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, hasLength(1));
+    });
+
+    test('passes for regular indexOf usage', () {
+      const source = '''
+void check(List<int> items) {
+  final index = items.indexOf(5);
+}
+''';
+      final findings = rule.analyze('test.dart', source, source.split('\n'));
+      expect(findings, isEmpty);
+    });
+  });
 }

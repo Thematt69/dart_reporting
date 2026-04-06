@@ -24,6 +24,23 @@ A static analysis and code audit CLI tool for Dart/Flutter projects. Acts as a c
 - **avoid-set-state-in-async:** Detects `setState()` after `await` without checking `mounted`.
 - **use-key-in-widget-constructor:** Detects widget constructors missing a `Key` parameter.
 
+#### Dart/Flutter Best Practices
+- **no-logic-in-create-state:** Detects logic in `createState()` (should only return a State instance).
+- **prefer-const-constructors:** Detects widget constructors that could be `const` but aren't.
+- **prefer-const-declarations:** Detects `final` variables with constant values that should be `const`.
+- **sort-child-properties-last:** Detects `child`/`children` not placed as the last widget parameter.
+- **prefer-final-locals:** Detects `var` local variables that are never reassigned (should be `final`).
+- **sized-box-for-whitespace:** Detects `Container` used only for width/height (should use `SizedBox`).
+- **avoid-void-async:** Detects `void async` functions (should return `Future<void>`).
+- **close-sinks:** Detects `StreamController`/`Sink` not closed in `dispose()`.
+- **unawaited-futures:** Detects Future-returning expressions that are not awaited.
+- **only-throw-errors:** Detects `throw` with string/number literals instead of Error/Exception.
+- **avoid-catching-errors:** Detects `catch (Error)` blocks (should catch `Exception` instead).
+- **use-full-hex-values:** Detects short hex color values (requires full 8-char `0xFFRRGGBB` format).
+- **hash-and-equals:** Detects classes overriding `==` without `hashCode` (or vice versa).
+- **unnecessary-this:** Detects unnecessary `this.` keyword when there's no naming conflict.
+- **prefer-contains:** Detects `indexOf() != -1` patterns (recommends `contains()`).
+
 #### Dead Code / Unused Code Detection
 - **unused-import:** Detects imports that appear unused in the file.
 - **commented-out-code:** Detects blocks of commented-out code (≥3 consecutive lines).
@@ -120,25 +137,40 @@ lib/
     │   ├── analyzer_module.dart
     │   └── rules/
     │       ├── avoid_build_context_in_async_rule.dart
+    │       ├── avoid_catching_errors_rule.dart
     │       ├── avoid_empty_catch_rule.dart
     │       ├── avoid_hardcoded_colors_rule.dart
     │       ├── avoid_non_null_assertion_rule.dart
     │       ├── avoid_print_rule.dart
     │       ├── avoid_set_state_in_async_rule.dart
     │       ├── avoid_unnecessary_container_rule.dart
+    │       ├── avoid_void_async_rule.dart
+    │       ├── close_sinks_rule.dart
     │       ├── const_widget_rule.dart
     │       ├── dead_code_rule.dart
     │       ├── equatable_rule.dart
     │       ├── firebase_rule.dart
     │       ├── go_router_rule.dart
+    │       ├── hash_and_equals_rule.dart
     │       ├── image_network_rule.dart
     │       ├── image_picker_rule.dart
     │       ├── media_query_rule.dart
+    │       ├── no_logic_in_create_state_rule.dart
+    │       ├── only_throw_errors_rule.dart
+    │       ├── prefer_const_constructors_rule.dart
+    │       ├── prefer_const_declarations_rule.dart
+    │       ├── prefer_contains_rule.dart
+    │       ├── prefer_final_locals_rule.dart
     │       ├── prefer_is_empty_rule.dart
     │       ├── prefer_named_parameters_rule.dart
     │       ├── riverpod_rule.dart
     │       ├── sentry_rule.dart
+    │       ├── sized_box_for_whitespace_rule.dart
+    │       ├── sort_child_properties_last_rule.dart
     │       ├── stream_subscription_rule.dart
+    │       ├── unawaited_futures_rule.dart
+    │       ├── unnecessary_this_rule.dart
+    │       ├── use_full_hex_values_rule.dart
     │       ├── use_key_in_widget_constructor_rule.dart
     │       └── widget_lifecycle_rule.dart
     ├── ast_duplication/         # Code duplication detection

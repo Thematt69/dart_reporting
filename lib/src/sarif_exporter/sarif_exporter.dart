@@ -148,6 +148,37 @@ class SarifExporter {
         'Avoid setState() after await without mounted check',
       'analyzer/use-key-in-widget-constructor' =>
         'Widget constructor missing Key parameter',
+      // Additional Dart/Flutter best practices
+      'analyzer/no-logic-in-create-state' =>
+        'No logic in createState() method',
+      'analyzer/prefer-const-constructors' =>
+        'Prefer const constructors for compile-time optimization',
+      'analyzer/prefer-const-declarations' =>
+        'Prefer const over final for constant values',
+      'analyzer/sort-child-properties-last' =>
+        'Place child/children property last in widget constructors',
+      'analyzer/prefer-final-locals' =>
+        'Prefer final for local variables that are never reassigned',
+      'analyzer/sized-box-for-whitespace' =>
+        'Use SizedBox instead of Container for whitespace',
+      'analyzer/avoid-void-async' =>
+        'Avoid void async functions (use Future<void>)',
+      'analyzer/close-sinks' =>
+        'StreamController/Sink not closed in dispose()',
+      'analyzer/unawaited-futures' =>
+        'Future-returning expression not awaited',
+      'analyzer/only-throw-errors' =>
+        'Only throw Error or Exception objects',
+      'analyzer/avoid-catching-errors' =>
+        'Avoid catching Error (catch Exception instead)',
+      'analyzer/use-full-hex-values' =>
+        'Use full 8-character hex values for Flutter colors',
+      'analyzer/hash-and-equals' =>
+        'Override both operator == and hashCode',
+      'analyzer/unnecessary-this' =>
+        'Unnecessary this keyword',
+      'analyzer/prefer-contains' =>
+        'Use contains() instead of indexOf() comparison',
       // Dead code rules
       'analyzer/unused-import' =>
         'Unused import detected',
@@ -252,6 +283,36 @@ class SarifExporter {
       'analyzer/avoid-build-context-in-async' ||
       'analyzer/avoid-set-state-in-async' =>
         'https://dart.dev/tools/linter-rules/use_build_context_synchronously',
+      'analyzer/no-logic-in-create-state' =>
+        'https://dart.dev/tools/linter-rules/no_logic_in_create_state',
+      'analyzer/prefer-const-constructors' =>
+        'https://dart.dev/tools/linter-rules/prefer_const_constructors',
+      'analyzer/prefer-const-declarations' =>
+        'https://dart.dev/tools/linter-rules/prefer_const_declarations',
+      'analyzer/sort-child-properties-last' =>
+        'https://dart.dev/tools/linter-rules/sort_child_properties_last',
+      'analyzer/prefer-final-locals' =>
+        'https://dart.dev/tools/linter-rules/prefer_final_locals',
+      'analyzer/sized-box-for-whitespace' =>
+        'https://dart.dev/tools/linter-rules/sized_box_for_whitespace',
+      'analyzer/avoid-void-async' =>
+        'https://dart.dev/tools/linter-rules/avoid_void_async',
+      'analyzer/close-sinks' =>
+        'https://dart.dev/tools/linter-rules/close_sinks',
+      'analyzer/unawaited-futures' =>
+        'https://dart.dev/tools/linter-rules/unawaited_futures',
+      'analyzer/only-throw-errors' =>
+        'https://dart.dev/tools/linter-rules/only_throw_errors',
+      'analyzer/avoid-catching-errors' =>
+        'https://dart.dev/tools/linter-rules/avoid_catching_errors',
+      'analyzer/use-full-hex-values' =>
+        'https://dart.dev/tools/linter-rules/use_full_hex_values_for_flutter_colors',
+      'analyzer/hash-and-equals' =>
+        'https://dart.dev/tools/linter-rules/hash_and_equals',
+      'analyzer/unnecessary-this' =>
+        'https://dart.dev/tools/linter-rules/unnecessary_this',
+      'analyzer/prefer-contains' =>
+        'https://dart.dev/tools/linter-rules/prefer_contains',
       'analyzer/riverpod-prefer-notifier' =>
         'https://riverpod.dev/docs/migration/from_state_notifier',
       'analyzer/riverpod-avoid-change-notifier' =>
