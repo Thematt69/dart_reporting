@@ -1,0 +1,53 @@
+# GitHub Actions workflow template for projects using dart_reporting.
+#
+# This workflow runs on pull requests and pushes to the default branch,
+# performing automated code analysis and security auditing.
+#
+# Setup: Add this file to the target project's .github/workflows/ directory.
+# The target project should declare dart_reporting in dev_dependencies:
+#
+#   dev_dependencies:
+#     dart_reporting:
+#       git:
+#         url: https://github.com/Thematt69/dart_reporting
+#
+name: Code Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Static Analysis & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Run dart_reporting analysis
+        run: dart run dart_reporting --output dart_reporting.sarif
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dart_reporting.sarif
