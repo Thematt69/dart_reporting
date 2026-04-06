@@ -10,7 +10,7 @@ class AvoidCatchingErrorsRule extends AnalysisRule {
   const AvoidCatchingErrorsRule();
 
   static final _catchErrorPattern = RegExp(
-    r'}\s*on\s+(Error|StateError|UnsupportedError|RangeError|TypeError|StackOverflowError|OutOfMemoryError|ConcurrentModificationError|CyclicInitializationError|AssertionError)\b',
+    r'\bon\s+(Error|StateError|UnsupportedError|RangeError|TypeError|StackOverflowError|OutOfMemoryError|ConcurrentModificationError|CyclicInitializationError|AssertionError)\b',
   );
 
   @override

@@ -53,7 +53,7 @@ class PreferConstConstructorsRule extends AnalysisRule {
           // Simple heuristic: check if arguments look like constants
           // (string literals, numbers, booleans, named const parameters)
           final afterMatch = source.substring(
-            source.indexOf('\n') * 0 + _offsetOf(lines, i, match.start),
+            _offsetOf(lines, i, match.start),
           );
 
           if (_looksLikeConstArgs(afterMatch, widget)) {

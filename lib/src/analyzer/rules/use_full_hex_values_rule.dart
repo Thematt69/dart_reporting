@@ -33,9 +33,8 @@ class UseFullHexValuesRule extends AnalysisRule {
             ruleId: 'analyzer/use-full-hex-values',
             message:
                 'Use full 8-character hex values for Flutter colors. '
-                'Replace "0x$hexValue" with '
-                '"0x${hexValue.padLeft(8, "F").toUpperCase()}" to '
-                'explicitly specify the alpha channel.',
+                'Replace "0x$hexValue" with a full 8-character hex value '
+                '(e.g., 0xFFRRGGBB) to explicitly specify the alpha channel.',
             severity: FindingSeverity.warning,
             filePath: filePath,
             line: i + 1,
