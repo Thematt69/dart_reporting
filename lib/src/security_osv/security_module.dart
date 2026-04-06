@@ -38,42 +38,56 @@ class SecurityModule {
       final pubDevClient = PubDevClient();
 
       try {
-        // Query OSV for vulnerabilities
-        for (final dep in deps) {
-          final vulns = await osvClient.queryVulnerabilities(
-            dep.name,
-            dep.version,
+        // Query OSV for vulnerabilities concurrently (bounded)
+        const maxConcurrent = 5;
+        for (var i = 0; i < deps.length; i += maxConcurrent) {
+          final batch = deps.skip(i).take(maxConcurrent);
+          final results = await Future.wait(
+            batch.map((dep) => osvClient.queryVulnerabilities(
+              dep.name,
+              dep.version,
+            )),
           );
 
-          for (final vuln in vulns) {
-            findings.add(Finding(
-              ruleId: 'security/osv-vulnerability',
-              message:
-                  '${vuln.id}: ${vuln.summary} (package: ${dep.name}@${dep.version})',
-              severity: FindingSeverity.error,
-              helpUri: 'https://osv.dev/vulnerability/${vuln.id}',
-            ));
+          for (var j = 0; j < results.length; j++) {
+            final dep = deps[i + j];
+            for (final vuln in results[j]) {
+              findings.add(Finding(
+                ruleId: 'security/osv-vulnerability',
+                message:
+                    '${vuln.id}: ${vuln.summary} (package: ${dep.name}@${dep.version})',
+                severity: FindingSeverity.error,
+                helpUri: 'https://osv.dev/vulnerability/${vuln.id}',
+              ));
+            }
           }
         }
 
-        // Check pub.dev for discontinued packages
+        // Check pub.dev for discontinued packages concurrently (bounded)
         if (checkPubDev) {
-          for (final dep in deps) {
-            if (dep.source != 'hosted') continue;
+          final hostedDeps =
+              deps.where((d) => d.source == 'hosted').toList();
 
-            final status = await pubDevClient.checkPackageStatus(
-              dep.name,
-              dep.version,
+          for (var i = 0; i < hostedDeps.length; i += maxConcurrent) {
+            final batch = hostedDeps.skip(i).take(maxConcurrent);
+            final results = await Future.wait(
+              batch.map((dep) => pubDevClient.checkPackageStatus(
+                dep.name,
+                dep.version,
+              )),
             );
 
-            if (status.isDiscontinued) {
-              findings.add(Finding(
-                ruleId: 'security/discontinued-package',
-                message:
-                    'Package "${dep.name}" is discontinued on pub.dev.',
-                severity: FindingSeverity.warning,
-                helpUri: 'https://pub.dev/packages/${dep.name}',
-              ));
+            for (var j = 0; j < results.length; j++) {
+              final dep = hostedDeps[i + j];
+              if (results[j].isDiscontinued) {
+                findings.add(Finding(
+                  ruleId: 'security/discontinued-package',
+                  message:
+                      'Package "${dep.name}" is discontinued on pub.dev.',
+                  severity: FindingSeverity.warning,
+                  helpUri: 'https://pub.dev/packages/${dep.name}',
+                ));
+              }
             }
           }
         }

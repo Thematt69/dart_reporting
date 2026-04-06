@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../common/common.dart';
 import 'rules/avoid_build_context_in_async_rule.dart';
 import 'rules/avoid_catching_errors_rule.dart';
@@ -135,9 +137,10 @@ class AnalyzerModule {
       for (final file in dartFiles) {
         final source = file.readAsStringSync();
         final lines = source.split('\n');
+        final relativePath = p.relative(file.path, from: projectPath);
 
         for (final rule in rules) {
-          findings.addAll(rule.analyze(file.path, source, lines));
+          findings.addAll(rule.analyze(relativePath, source, lines));
         }
       }
 

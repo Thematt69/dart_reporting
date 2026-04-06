@@ -36,18 +36,37 @@ class UnawaitedFuturesRule extends AnalysisRule {
     if (!source.contains('async')) return findings;
 
     var inAsyncFunction = false;
+    var braceDepth = 0;
+    var asyncFunctionBraceDepth = 0;
 
     for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+
+      // Track brace depth for function boundary detection
+      for (var c = 0; c < line.length; c++) {
+        if (line[c] == '{') {
+          braceDepth++;
+        } else if (line[c] == '}') {
+          braceDepth--;
+          // If we've returned to the depth before the async function started,
+          // we've exited the async function
+          if (inAsyncFunction && braceDepth < asyncFunctionBraceDepth) {
+            inAsyncFunction = false;
+          }
+        }
+      }
+
       // Track async function boundaries
-      if (lines[i].contains('async') &&
-          (lines[i].contains('Future') || lines[i].contains('void'))) {
+      if (line.contains('async') &&
+          (line.contains('Future') || line.contains('void'))) {
         inAsyncFunction = true;
+        asyncFunctionBraceDepth = braceDepth;
       }
 
       if (!inAsyncFunction) continue;
 
       // Check for function/method calls that look like they return futures
-      final match = _futureCallPattern.firstMatch(lines[i]);
+      final match = _futureCallPattern.firstMatch(line);
       if (match == null) continue;
 
       final methodCall = match.group(1)!;

@@ -273,7 +273,7 @@ class SarifExporter {
       'analyzer/avoid-unnecessary-container' =>
         'https://dart.dev/tools/linter-rules/avoid_unnecessary_containers',
       'analyzer/avoid-non-null-assertion' =>
-        'https://dart.dev/tools/linter-rules/avoid_null_checks_in_equality_operators',
+        'https://dart.dev/effective-dart/usage#avoid-using-cast-and-non-null-assertion',
       'analyzer/avoid-empty-catch' =>
         'https://dart.dev/tools/linter-rules/empty_catches',
       'analyzer/prefer-is-empty' =>

@@ -51,8 +51,11 @@ class OsvClient {
         String? severity;
         final sevList = v['severity'] as List?;
         if (sevList != null && sevList.isNotEmpty) {
-          severity = (sevList.first['score'] as String?) ??
-              (sevList.first['type'] as String?);
+          final firstSev = sevList.first;
+          if (firstSev is Map<String, dynamic>) {
+            severity = (firstSev['score'] as String?) ??
+                (firstSev['type'] as String?);
+          }
         }
 
         return Vulnerability(

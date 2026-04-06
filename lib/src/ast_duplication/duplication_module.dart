@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../common/common.dart';
 import 'duplication_models.dart';
 import 'structural_hasher.dart';
@@ -60,11 +62,12 @@ class DuplicationModule {
         final source = file.readAsStringSync();
         final blocks = hasher.extractBlocks(source);
         totalBlocks += blocks.length;
+        final relativePath = p.relative(file.path, from: projectPath);
 
         for (final block in blocks) {
           final key = block.structuralHash;
           allBlocks.putIfAbsent(key, () => []).add(_BlockInfo(
-                filePath: file.path,
+                filePath: relativePath,
                 functionName: block.functionName,
                 startLine: block.startLine,
                 endLine: block.endLine,

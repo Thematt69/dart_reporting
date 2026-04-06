@@ -65,6 +65,11 @@ class WidgetLifecycleRule extends AnalysisRule {
     return findings;
   }
 
+  // MapController field declaration pattern (captures variable name)
+  static final _mapControllerFieldPattern = RegExp(
+    r'MapController\s*\??\s+(\w+)',
+  );
+
   void _checkMapController(
     String filePath,
     String source,
@@ -77,15 +82,24 @@ class WidgetLifecycleRule extends AnalysisRule {
 
     for (var i = 0; i < lines.length; i++) {
       if (_mapControllerPattern.hasMatch(lines[i])) {
-        // Check if dispose is called
-        if (!source.contains('.dispose()') ||
-            !_disposePattern.hasMatch(source)) {
+        // Extract the variable name from the field declaration
+        final fieldMatch = _mapControllerFieldPattern.firstMatch(source);
+        final controllerName = fieldMatch?.group(1);
+
+        // Check if the specific MapController is disposed
+        final hasDispose = _disposePattern.hasMatch(source);
+        final isDisposed = controllerName != null &&
+            hasDispose &&
+            _isVariableDisposedInDispose(source, controllerName);
+
+        if (!isDisposed) {
           findings.add(Finding(
             ruleId: 'analyzer/flutter-map-controller-not-disposed',
             message:
-                'MapController should be disposed in the dispose() '
-                'method to prevent memory leaks. Call '
-                'mapController.dispose() in dispose().',
+                'MapController${controllerName != null ? ' "$controllerName"' : ''} '
+                'should be disposed in the dispose() method to prevent '
+                'memory leaks. Call '
+                '${controllerName ?? 'mapController'}.dispose() in dispose().',
             severity: FindingSeverity.warning,
             filePath: filePath,
             line: i + 1,
@@ -94,6 +108,18 @@ class WidgetLifecycleRule extends AnalysisRule {
         }
       }
     }
+  }
+
+  /// Checks if a variable is disposed inside the dispose() method body.
+  bool _isVariableDisposedInDispose(String source, String variableName) {
+    final disposeMatch = _disposePattern.firstMatch(source);
+    if (disposeMatch == null) return false;
+
+    final disposeBody = _extractMethodBody(source, disposeMatch.start);
+    if (disposeBody == null) return false;
+
+    return disposeBody.contains('$variableName.dispose()') ||
+        disposeBody.contains('$variableName?.dispose()');
   }
 
   void _checkWakelock(
